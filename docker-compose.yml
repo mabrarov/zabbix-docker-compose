@@ -1,0 +1,103 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "12m"
+    max-file: "5"
+
+x-zabbix-server-image: &zabbix-server-image
+  "zabbix/zabbix-server-pgsql:alpine-6.0-latest"
+
+x-zabbix-web-image: &zabbix-web-image
+  "zabbix/zabbix-web-nginx-pgsql:alpine-6.0-latest"
+
+x-postgres-image: &postgres-image
+  "postgres:16-alpine"
+
+x-zabbix-server-db: &zabbix-server-db
+  "zabbix"
+
+x-zabbix-server-db-port: &zabbix-server-db-port
+  "5432"
+
+x-zabbix-server-db-user: &zabbix-server-db-user
+  "zabbix"
+
+x-zabbix-server-db-password: &zabbix-server-db-password
+  "zabbix"
+
+x-zabbix-server-port: &zabbix-server-port
+  "10051"
+
+services:
+  server-db-init:
+    image: *zabbix-server-image
+    init: true
+    command: "init_db_only"
+    environment:
+      POSTGRES_DB: *zabbix-server-db
+      POSTGRES_USER: *zabbix-server-db-user
+      POSTGRES_PASSWORD: *zabbix-server-db-password
+    depends_on:
+      postgres-server:
+        condition: "service_healthy"
+    logging: *default-logging
+
+  zabbix-server:
+    image: *zabbix-server-image
+    environment:
+      DB_SERVER_HOST: "postgres-server"
+      DB_SERVER_PORT: *zabbix-server-db-port
+      POSTGRES_DB: *zabbix-server-db
+      POSTGRES_USER: *zabbix-server-db-user
+      POSTGRES_PASSWORD: *zabbix-server-db-password
+      ZBX_LISTENPORT: *zabbix-server-port
+    stop_grace_period: "1m30s"
+    depends_on:
+      server-db-init:
+        condition: "service_completed_successfully"
+      postgres-server:
+        condition: "service_healthy"
+    logging: *default-logging
+
+  zabbix-web:
+    image: *zabbix-web-image
+    environment:
+      ZBX_SERVER_HOST: "zabbix-server"
+      ZBX_SERVER_PORT: *zabbix-server-port
+      DB_SERVER_HOST: "postgres-server"
+      DB_SERVER_PORT: *zabbix-server-db-port
+      POSTGRES_DB: *zabbix-server-db
+      POSTGRES_USER: *zabbix-server-db-user
+      POSTGRES_PASSWORD: *zabbix-server-db-password
+      ZBX_SERVER_NAME: "zabbix-server"
+    ports:
+      - "80:8080"
+    stop_grace_period: "1m"
+    depends_on:
+      server-db-init:
+        condition: "service_completed_successfully"
+      postgres-server:
+        condition: "service_healthy"
+    logging: *default-logging
+
+  postgres-server:
+    image: *postgres-image
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - "pg_isready"
+        - "-U"
+        - *zabbix-server-db-user
+        - "-d"
+        - *zabbix-server-db
+      start_period: "10s"
+      interval: "10s"
+      timeout: "60s"
+      retries: "5"
+    environment:
+      PGUSER: *zabbix-server-db-user
+      POSTGRES_DB: *zabbix-server-db
+      POSTGRES_USER: *zabbix-server-db-user
+      POSTGRES_PASSWORD: *zabbix-server-db-password
+    stop_grace_period: "2m"
+    logging: *default-logging
