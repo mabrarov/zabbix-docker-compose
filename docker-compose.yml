@@ -83,6 +83,7 @@ services:
   postgres-server:
     image: *postgres-image
     healthcheck:
+      # noinspection ComposeUnknownValues
       test:
         - "CMD-SHELL"
         - "pg_isready"
@@ -93,7 +94,7 @@ services:
       start_period: "10s"
       interval: "10s"
       timeout: "60s"
-      retries: "5"
+      retries: 5
     environment:
       PGUSER: *zabbix-server-db-user
       POSTGRES_DB: *zabbix-server-db
