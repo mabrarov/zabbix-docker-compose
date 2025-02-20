@@ -28,6 +28,13 @@ x-zabbix-server-db-password: &zabbix-server-db-password
 x-zabbix-server-port: &zabbix-server-port
   "10051"
 
+volumes:
+  postgres-server-data:
+  server-db-init-export:
+  server-db-init-snmptraps:
+  zabbix-server-export:
+  zabbix-server-snmptraps:
+
 services:
   server-db-init:
     image: *zabbix-server-image
@@ -37,6 +44,17 @@ services:
       POSTGRES_DB: *zabbix-server-db
       POSTGRES_USER: *zabbix-server-db-user
       POSTGRES_PASSWORD: *zabbix-server-db-password
+    volumes:
+      - type: "volume"
+        source: "server-db-init-export"
+        target: "/var/lib/zabbix/export"
+        volume:
+          nocopy: true
+      - type: "volume"
+        source: "server-db-init-snmptraps"
+        target: "/var/lib/zabbix/snmptraps"
+        volume:
+          nocopy: true
     depends_on:
       postgres-server:
         condition: "service_healthy"
@@ -52,6 +70,17 @@ services:
       POSTGRES_PASSWORD: *zabbix-server-db-password
       ZBX_LISTENPORT: *zabbix-server-port
     stop_grace_period: "1m30s"
+    volumes:
+      - type: "volume"
+        source: "zabbix-server-export"
+        target: "/var/lib/zabbix/export"
+        volume:
+          nocopy: true
+      - type: "volume"
+        source: "zabbix-server-snmptraps"
+        target: "/var/lib/zabbix/snmptraps"
+        volume:
+          nocopy: true
     depends_on:
       server-db-init:
         condition: "service_completed_successfully"
@@ -101,4 +130,10 @@ services:
       POSTGRES_USER: *zabbix-server-db-user
       POSTGRES_PASSWORD: *zabbix-server-db-password
     stop_grace_period: "2m"
+    volumes:
+      - type: "volume"
+        source: "postgres-server-data"
+        target: "/var/lib/postgresql/data"
+        volume:
+          nocopy: true
     logging: *default-logging
