@@ -81,6 +81,8 @@ services:
         target: "/var/lib/zabbix/snmptraps"
         volume:
           nocopy: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       server-db-init:
         condition: "service_completed_successfully"
