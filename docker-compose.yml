@@ -11,7 +11,7 @@ x-zabbix-web-image: &zabbix-web-image
   "zabbix/zabbix-web-nginx-pgsql:alpine-7.4-latest"
 
 x-postgres-image: &postgres-image
-  "postgres:16-alpine"
+  "postgres:18-alpine"
 
 x-zabbix-server-db: &zabbix-server-db
   "zabbix"
@@ -133,7 +133,7 @@ services:
     volumes:
       - type: "volume"
         source: "postgres-server-data"
-        target: "/var/lib/postgresql/data"
+        target: "/var/lib/postgresql"
         volume:
           nocopy: true
     logging: *default-logging
