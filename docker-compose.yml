@@ -5,10 +5,10 @@ x-logging: &default-logging
     max-file: "5"
 
 x-zabbix-server-image: &zabbix-server-image
-  "zabbix/zabbix-server-pgsql:alpine-6.0-latest"
+  "zabbix/zabbix-server-pgsql:alpine-7.4-latest"
 
 x-zabbix-web-image: &zabbix-web-image
-  "zabbix/zabbix-web-nginx-pgsql:alpine-6.0-latest"
+  "zabbix/zabbix-web-nginx-pgsql:alpine-7.4-latest"
 
 x-postgres-image: &postgres-image
   "postgres:16-alpine"
