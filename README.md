@@ -17,7 +17,7 @@ docker compose up -d
 
 | Link | Username | Password |
 |---|---|---|
-| http://localhost/ | Admin | zabbix |
+| http://localhost:8080/ | Admin | zabbix |
 
 ## Stopping
 
